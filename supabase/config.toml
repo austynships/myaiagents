@@ -240,20 +240,26 @@ otp_length = 8
 # Number of seconds before the email OTP expires (defaults to 1 hour).
 otp_expiry = 3600
 
-# Use a production-ready SMTP server
+# Login/invite emails go through Resend (SMTP). TO ENABLE: uncomment this block
+# and the two templates below, set RESEND_API_KEY in your shell, then run
+# `supabase config push` for dev and prod. Until a domain is verified in
+# Resend, admin_email must be "onboarding@resend.dev" and Resend only delivers
+# to the email address that owns the Resend account.
 # [auth.email.smtp]
 # enabled = true
-# host = "smtp.sendgrid.net"
-# port = 587
-# user = "apikey"
-# pass = "env(SENDGRID_API_KEY)"
-# admin_email = "admin@email.com"
-# sender_name = "Admin"
+# host = "smtp.resend.com"
+# port = 465
+# user = "resend"
+# pass = "env(RESEND_API_KEY)"
+# admin_email = "onboarding@resend.dev"
+# sender_name = "AI Agents"
 
-# Custom templates (link to /auth/confirm with a token_hash, so the link works
-# in any browser or device). DISABLED: Supabase's free plan with its built-in
-# email sender doesn't allow template changes. Turn these on together with a
-# custom SMTP provider ([auth.email.smtp] above) before owner invites (Task 0.5).
+# Custom templates: the link opens /auth/confirm, where the person presses a
+# button to log in (so email link scanners can't use up the link), plus a
+# typed code. The templates append "&token_hash=..." to {{ .RedirectTo }}, so
+# every redirectTo we send must already contain "?" (we always add ?next=).
+# Supabase's free plan only allows custom templates with custom SMTP, so these
+# are enabled together with [auth.email.smtp] above.
 # [auth.email.template.magic_link]
 # subject = "Your login link"
 # content_path = "./supabase/templates/magic_link.html"

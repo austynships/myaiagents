@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import {
   isPlatformAdmin,
   isProtectedPath,
+  parseEmailLinkType,
+  postLoginPath,
   safeNextPath,
 } from "@/lib/auth-paths";
 
@@ -71,5 +73,35 @@ describe("isPlatformAdmin", () => {
   it("does not match partial emails", () => {
     expect(isPlatformAdmin("wner@example.com", list)).toBe(false);
     expect(isPlatformAdmin("owner@example.co", list)).toBe(false);
+  });
+});
+
+describe("parseEmailLinkType", () => {
+  it("accepts login and invite links only", () => {
+    expect(parseEmailLinkType("email")).toBe("email");
+    expect(parseEmailLinkType("magiclink")).toBe("email");
+    expect(parseEmailLinkType("invite")).toBe("invite");
+    for (const other of [
+      "recovery",
+      "signup",
+      "email_change",
+      "",
+      null,
+      undefined,
+    ]) {
+      expect(parseEmailLinkType(other), String(other)).toBeNull();
+    }
+  });
+});
+
+describe("postLoginPath", () => {
+  it("sends admins to /admin and everyone else to /dashboard by default", () => {
+    expect(postLoginPath("", true)).toBe("/admin");
+    expect(postLoginPath(null, false)).toBe("/dashboard");
+  });
+
+  it("honors a safe next path and ignores unsafe ones", () => {
+    expect(postLoginPath("/inbox/1", false)).toBe("/inbox/1");
+    expect(postLoginPath("//evil.com", true)).toBe("/admin");
   });
 });

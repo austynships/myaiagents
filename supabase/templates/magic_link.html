@@ -1,6 +1,15 @@
 <h2>Log in</h2>
-<p>Click the link below to log in. It expires in 1 hour and works once.</p>
 <p>
-  <a href="{{ .RedirectTo }}?token_hash={{ .TokenHash }}&type=email">Log in</a>
+  Click the link, then press <strong>Log in</strong> on the page that opens:
 </p>
+<p>
+  <a href="{{ .RedirectTo }}&token_hash={{ .TokenHash }}&type=email"
+    >Open the login page</a
+  >
+</p>
+<p>Or type this code on the login page:</p>
+<p style="font-size: 24px; font-weight: bold; letter-spacing: 4px">
+  {{ .Token }}
+</p>
+<p>Both expire in 1 hour and work once.</p>
 <p>If you didn't ask for this, you can ignore this email.</p>

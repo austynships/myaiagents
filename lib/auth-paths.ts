@@ -46,3 +46,23 @@ export function isPlatformAdmin(
     .filter(Boolean);
   return admins.includes(email.trim().toLowerCase());
 }
+
+/**
+ * The only email-link types our confirm page accepts. Supabase's older
+ * "magiclink" type is the same thing as "email".
+ */
+export function parseEmailLinkType(
+  value: string | null | undefined,
+): "email" | "invite" | null {
+  if (value === "email" || value === "magiclink") return "email";
+  if (value === "invite") return "invite";
+  return null;
+}
+
+/** Where to send someone right after they log in. */
+export function postLoginPath(
+  next: string | null | undefined,
+  isAdmin: boolean,
+): string {
+  return safeNextPath(next, isAdmin ? "/admin" : "/dashboard");
+}
