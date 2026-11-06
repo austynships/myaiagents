@@ -1,0 +1,9 @@
+.next
+node_modules
+package-lock.json
+next-env.d.ts
+supabase/.temp
+# Hand-written docs: keep their formatting as authored
+PRD.MD
+docs
+AGENTS.md
