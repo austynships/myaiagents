@@ -28,7 +28,8 @@ my-ai-agents/
 │  ├─ (auth)/
 │  │  ├─ login/page.tsx
 │  │  ├─ signup/page.tsx
-│  │  └─ auth/callback/route.ts    # Supabase auth code exchange
+│  │  ├─ auth/confirm/route.ts     # email link lands here (code or token_hash)
+│  │  └─ auth/signout/route.ts     # POST to log out
 │  ├─ (app)/                       # signed-in dashboard (layout checks session)
 │  │  ├─ layout.tsx
 │  │  ├─ dashboard/page.tsx        # "This week: X calls, Y leads, $Z"
@@ -54,7 +55,7 @@ my-ai-agents/
 │  │  ├─ client.ts                 # browser client
 │  │  ├─ server.ts                 # server components / actions (user session)
 │  │  ├─ admin.ts                  # service-role client — webhooks only, never in client code
-│  │  └─ middleware.ts             # session refresh helper
+│  │  └─ proxy.ts                  # session refresh helper used by /proxy.ts
 │  ├─ twilio/
 │  │  ├─ client.ts
 │  │  ├─ verify-signature.ts       # X-Twilio-Signature check on every webhook
@@ -529,8 +530,8 @@ Each task ends with something you can check yourself.
 | **0.1** | **Scaffold.** `git init`, latest stable Next.js + TypeScript + Tailwind + shadcn/ui + ESLint/Prettier + Vitest, folder skeleton from section 2, `.env.example`, README. | `npm run dev` shows a placeholder page; lint, typecheck and tests pass. |
 | **0.2** | **Deploy pipeline.** GitHub repo, Vercel project linked, preview deploy per branch. | A Vercel URL serves the placeholder page. |
 | **0.3** | **Database.** Supabase dev + prod projects, Supabase CLI, migration `20261106120000_core.sql`, seed data, generated TS types, RLS tests. | Migration applies cleanly; RLS tests pass; types generated. |
-| **0.4** | **Auth + admin gate.** Email magic-link login, invite-only (no public signup). `/admin` restricted to `PLATFORM_ADMIN_EMAILS`; owner dashboard routes protected by tenant membership. | You can log in and reach `/admin`; a non-admin account is refused. |
-| **0.5** | **Admin: business setup.** Form to create/edit a business: name, timezone, hours, services, FAQs, tone, owner alert phone, voice greeting, first-text template. Saving creates the tenant + a `missed_call_textback` agent + a new live version (previous version kept for rollback). Invite owner by email. Plus a seed script for local dev. | You create a test business in the browser and see it in the DB with a live agent version. |
+| **0.4** | **Auth + admin gate.** Email magic-link login, invite-only (no public signup). `/admin` restricted to `PLATFORM_ADMIN_EMAILS`; owner dashboard routes protected by tenant membership. | You can log in and reach `/admin`; a non-admin account is refused. **Done Nov 6, 2026.** Uses Supabase's standard login email (link must open in the same browser). |
+| **0.5** | **Admin: business setup.** Form to create/edit a business: name, timezone, hours, services, FAQs, tone, owner alert phone, voice greeting, first-text template. Saving creates the tenant + a `missed_call_textback` agent + a new live version (previous version kept for rollback). Invite owner by email. Plus a seed script for local dev. **Needs custom SMTP first** (see Resend in section 6): Supabase's built-in sender only emails members of your Supabase org and blocks custom templates on the free plan. Then enable the templates in `supabase/config.toml`. | You create a test business in the browser and see it in the DB with a live agent version. |
 | **0.6** | **Twilio foundation.** Twilio client, webhook signature check, route skeletons for voice/sms/status that log and return empty TwiML. | A request without a valid signature gets 403; a real test call/text shows in logs. |
 | **0.7** | **Number assignment.** Admin button: buy a local number (586/248/313), point its webhooks at the app, attach to the Messaging Service, save to `phone_numbers`. | The test business has a real Twilio number in Twilio and the DB. |
 
@@ -570,7 +571,7 @@ Each task ends with something you can check yourself.
 | **Twilio** | Numbers, voice webhooks, SMS | **Upgrade from trial** (trial only texts verified numbers). Create a Messaging Service. Complete **Trust Hub business profile** (your company as ISV) and **A2P 10DLC brand + campaign** registration — can take days to weeks; start immediately |
 | **Anthropic Console** | Claude API | API key, set a monthly spend limit |
 | **Domain registrar / DNS** | App domain | Depends on brand decision (open question 1) |
-| **Resend** (optional) | Custom SMTP for Supabase login emails | Supabase's built-in email is rate-limited; fine for a handful of Phase 0 users, switch before Phase 1. Owner email alerts come later |
+| **Resend** (or similar) | Custom SMTP for Supabase login + invite emails | **Required before Task 0.5.** Supabase's built-in sender only emails members of your Supabase org, is rate-limited, and on the free plan blocks custom templates. Needs a verified sending domain (brand decision). Owner email alerts come later |
 | **Sentry** (optional) | Error tracking | Free tier is fine |
 
 Later phases (don't set up yet): Stripe (billing), Vapi / Retell / ElevenLabs Agents (voice), Cloudflare R2 (recordings), Inngest or Trigger.dev (background jobs), an embeddings provider such as Voyage AI (knowledge search), Google Cloud OAuth + Cal.com (calendar booking).
@@ -583,8 +584,8 @@ NEXT_PUBLIC_APP_URL=                 # https://app.<yourdomain> (used in alert l
 
 # --- Supabase ---
 NEXT_PUBLIC_SUPABASE_URL=
-NEXT_PUBLIC_SUPABASE_ANON_KEY=       # or the newer "publishable" key
-SUPABASE_SERVICE_ROLE_KEY=           # or the newer "secret" key — SERVER ONLY, never NEXT_PUBLIC
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY= # sb_publishable_...
+SUPABASE_SECRET_KEY=                 # sb_secret_... SERVER ONLY, never NEXT_PUBLIC
 SUPABASE_PROJECT_REF=                # for `supabase gen types` / migrations
 SUPABASE_DB_PASSWORD=                # CLI migrations only, not needed on Vercel
 

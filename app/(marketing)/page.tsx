@@ -1,4 +1,5 @@
-import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { buttonVariants } from "@/components/ui/button";
 
 export default function Home() {
   return (
@@ -10,7 +11,9 @@ export default function Home() {
         Missed-Call Text-Back is coming soon. This is a placeholder page while
         we build Phase 0.
       </p>
-      <Button disabled>Coming soon</Button>
+      <Link href="/login" className={buttonVariants({ variant: "outline" })}>
+        Log in
+      </Link>
     </main>
   );
 }
