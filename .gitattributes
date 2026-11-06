@@ -1,0 +1,5 @@
+# Keep LF line endings on every OS (Prettier expects LF)
+* text=auto eol=lf
+*.ico binary
+*.png binary
+*.jpg binary
