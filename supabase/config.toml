@@ -202,7 +202,7 @@ password_requirements = ""
 
 [auth.rate_limit]
 # Number of emails that can be sent per hour. Requires auth.email.smtp to be enabled.
-email_sent = 2
+email_sent = 30
 # Number of SMS messages that can be sent per hour. Requires auth.sms to be enabled.
 sms_sent = 30
 # Number of anonymous sign-ins that can be made per hour per IP address. Requires enable_anonymous_sign_ins = true.
@@ -240,19 +240,18 @@ otp_length = 8
 # Number of seconds before the email OTP expires (defaults to 1 hour).
 otp_expiry = 3600
 
-# Login/invite emails go through Resend (SMTP). TO ENABLE: uncomment this block
-# and the two templates below, set RESEND_API_KEY in your shell, then run
-# `supabase config push` for dev and prod. Until a domain is verified in
-# Resend, admin_email must be "onboarding@resend.dev" and Resend only delivers
-# to the email address that owns the Resend account.
-# [auth.email.smtp]
-# enabled = true
-# host = "smtp.resend.com"
-# port = 465
-# user = "resend"
-# pass = "env(RESEND_API_KEY)"
-# admin_email = "onboarding@resend.dev"
-# sender_name = "AI Agents"
+# Login/invite emails go through Resend (SMTP). `supabase config push` needs
+# RESEND_API_KEY set in your shell. Until a domain is verified in Resend,
+# admin_email must be "onboarding@resend.dev" and Resend only delivers to the
+# email address that owns the Resend account (so owner invites need a domain).
+[auth.email.smtp]
+enabled = true
+host = "smtp.resend.com"
+port = 465
+user = "resend"
+pass = "env(RESEND_API_KEY)"
+admin_email = "onboarding@resend.dev"
+sender_name = "AI Agents"
 
 # Custom templates: the link opens /auth/confirm, where the person presses a
 # button to log in (so email link scanners can't use up the link), plus a
@@ -260,13 +259,13 @@ otp_expiry = 3600
 # every redirectTo we send must already contain "?" (we always add ?next=).
 # Supabase's free plan only allows custom templates with custom SMTP, so these
 # are enabled together with [auth.email.smtp] above.
-# [auth.email.template.magic_link]
-# subject = "Your login link"
-# content_path = "./supabase/templates/magic_link.html"
-#
-# [auth.email.template.invite]
-# subject = "You've been invited"
-# content_path = "./supabase/templates/invite.html"
+[auth.email.template.magic_link]
+subject = "Your login link"
+content_path = "./supabase/templates/magic_link.html"
+
+[auth.email.template.invite]
+subject = "You've been invited"
+content_path = "./supabase/templates/invite.html"
 
 # Uncomment to customize notification email template
 # [auth.email.notification.password_changed]
