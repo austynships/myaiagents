@@ -11,7 +11,10 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "test:db": "vitest run tests/db",
+    "db:push": "supabase db push --linked",
+    "db:types": "supabase gen types typescript --linked --schema public > types/database.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",
@@ -35,6 +38,7 @@
     "eslint-config-next": "16.4.5",
     "eslint-config-prettier": "^10.1.8",
     "jsdom": "^31.0.0",
+    "postgres": "^4.1.0",
     "prettier": "^3.9.10",
     "prettier-plugin-tailwindcss": "^0.8.1",
     "tailwindcss": "^4",

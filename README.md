@@ -21,17 +21,24 @@ cp .env.example .env.local   # fill in values as each service gets set up
 npm run dev                  # http://localhost:3000
 ```
 
+## Database
+
+Supabase projects: `myaiagents-dev` (linked by default) and `myaiagents-prod`, both in us-east-1. Install the [Supabase CLI](https://supabase.com/docs/guides/cli); Docker is not needed. Migrations live in `supabase/migrations/`; `supabase/seed.sql` is dev-only test data and must never run against prod.
+
 ## Scripts
 
-| Command              | What it does                      |
-| -------------------- | --------------------------------- |
-| `npm run dev`        | Start the dev server              |
-| `npm run build`      | Production build                  |
-| `npm run lint`       | ESLint                            |
-| `npm run typecheck`  | TypeScript check, no output files |
-| `npm test`           | Run tests once (Vitest)           |
-| `npm run test:watch` | Re-run tests on change            |
-| `npm run format`     | Format with Prettier              |
+| Command              | What it does                                                                    |
+| -------------------- | ------------------------------------------------------------------------------- |
+| `npm run dev`        | Start the dev server                                                            |
+| `npm run build`      | Production build                                                                |
+| `npm run lint`       | ESLint                                                                          |
+| `npm run typecheck`  | TypeScript check, no output files                                               |
+| `npm test`           | Run tests once (Vitest)                                                         |
+| `npm run test:watch` | Re-run tests on change                                                          |
+| `npm run format`     | Format with Prettier                                                            |
+| `npm run test:db`    | Row-level security tests against the dev database (needs `SUPABASE_DEV_DB_URL`) |
+| `npm run db:push`    | Apply new migrations to the linked Supabase project                             |
+| `npm run db:types`   | Regenerate `types/database.ts` from the linked project                          |
 
 ## Layout
 

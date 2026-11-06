@@ -83,12 +83,12 @@ my-ai-agents/
 ├─ supabase/
 │  ├─ config.toml
 │  ├─ migrations/
-│  │  └─ 0001_core.sql             # schema in section 3
+│  │  └─ 20261106120000_core.sql   # schema in section 3
 │  ├─ seed.sql                     # one test tenant + agent + number for local dev
-│  └─ tests/rls.test.sql           # pgTAP: tenant A can't see tenant B
 ├─ types/
 │  └─ database.ts                  # generated: supabase gen types typescript
 ├─ tests/                          # vitest: engine, guardrails, webhook handlers
+│  └─ db/rls.test.ts               # RLS tests against the dev DB (rolled back)
 ├─ docs/
 │  └─ build-plan.md
 ├─ proxy.ts                        # (Next 16 name for middleware) Supabase session refresh + protect (app)/admin routes
@@ -100,7 +100,9 @@ my-ai-agents/
 
 ---
 
-## 3. Supabase schema (`supabase/migrations/0001_core.sql`)
+## 3. Supabase schema (`supabase/migrations/20261106120000_core.sql`)
+
+> **Applied Nov 6, 2026** to `myaiagents-dev` and `myaiagents-prod`. The migration file is the source of truth; the SQL below is the original design and differs in small ways (explicit table grants, split write policies, pgvector in the `extensions` schema).
 
 **Design notes**
 - Every row carries `tenant_id`. RLS checks membership through two helper functions in a non-exposed `private` schema.
@@ -483,7 +485,7 @@ create policy optout_select on public.sms_opt_outs for select to authenticated
 alter publication supabase_realtime add table public.conversations, public.messages;
 ```
 
-**RLS test to write with the migration (`supabase/tests/rls.test.sql`):** two businesses, two users; user A cannot select/update anything of business B; staff cannot edit agents; agency admin sees both child businesses.
+**RLS tests (`tests/db/rls.test.ts`, run with `npm run test:db`):** 11 Vitest tests against the dev database, each inside a rolled-back transaction: owner isolation, staff limits, agency admin scope, anon access, server-only tables, draft-only versions, `create_business()`, cross-tenant foreign keys, one live version per agent. No Docker needed.
 
 ---
 
@@ -526,7 +528,7 @@ Each task ends with something you can check yourself.
 |---|---|---|
 | **0.1** | **Scaffold.** `git init`, latest stable Next.js + TypeScript + Tailwind + shadcn/ui + ESLint/Prettier + Vitest, folder skeleton from section 2, `.env.example`, README. | `npm run dev` shows a placeholder page; lint, typecheck and tests pass. |
 | **0.2** | **Deploy pipeline.** GitHub repo, Vercel project linked, preview deploy per branch. | A Vercel URL serves the placeholder page. |
-| **0.3** | **Database.** Supabase dev + prod projects, Supabase CLI, migration `0001_core.sql`, seed data, generated TS types, RLS tests. | Migration applies cleanly; RLS tests pass; types generated. |
+| **0.3** | **Database.** Supabase dev + prod projects, Supabase CLI, migration `20261106120000_core.sql`, seed data, generated TS types, RLS tests. | Migration applies cleanly; RLS tests pass; types generated. |
 | **0.4** | **Auth + admin gate.** Email magic-link login, invite-only (no public signup). `/admin` restricted to `PLATFORM_ADMIN_EMAILS`; owner dashboard routes protected by tenant membership. | You can log in and reach `/admin`; a non-admin account is refused. |
 | **0.5** | **Admin: business setup.** Form to create/edit a business: name, timezone, hours, services, FAQs, tone, owner alert phone, voice greeting, first-text template. Saving creates the tenant + a `missed_call_textback` agent + a new live version (previous version kept for rollback). Invite owner by email. Plus a seed script for local dev. | You create a test business in the browser and see it in the DB with a live agent version. |
 | **0.6** | **Twilio foundation.** Twilio client, webhook signature check, route skeletons for voice/sms/status that log and return empty TwiML. | A request without a valid signature gets 403; a real test call/text shows in logs. |
@@ -564,7 +566,7 @@ Each task ends with something you can check yourself.
 |---|---|---|
 | **GitHub** | Code hosting, Vercel deploys | Private repo |
 | **Vercel** | Hosting, preview deploys, cron | Pro plan likely needed for commercial use |
-| **Supabase** | Postgres, auth, realtime | Two projects: `dev` and `prod`. Install Supabase CLI + Docker Desktop for local dev |
+| **Supabase** | Postgres, auth, realtime | Created Nov 6, 2026 in org Chalifour Systems, us-east-1: `myaiagents-dev` (cucszeajnydygjcrzauv), `myaiagents-prod` (mbmiehrajylmuxcchawz). Supabase CLI only; no Docker (tests run against hosted dev). Prod needs a paid plan before the pilot: free projects pause after a week idle |
 | **Twilio** | Numbers, voice webhooks, SMS | **Upgrade from trial** (trial only texts verified numbers). Create a Messaging Service. Complete **Trust Hub business profile** (your company as ISV) and **A2P 10DLC brand + campaign** registration — can take days to weeks; start immediately |
 | **Anthropic Console** | Claude API | API key, set a monthly spend limit |
 | **Domain registrar / DNS** | App domain | Depends on brand decision (open question 1) |
