@@ -1,6 +1,7 @@
 import "server-only";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { connection } from "next/server";
 import type { Database } from "@/types/database";
 
 /**
@@ -9,6 +10,10 @@ import type { Database } from "@/types/database";
  * Create a new one per request.
  */
 export async function createClient() {
+  // Always request-time. Supabase checks token expiry with Date.now(), which
+  // Next.js forbids while prerendering (Partial Prefetching can prerender
+  // with cookies available), so stop prerendering here.
+  await connection();
   const cookieStore = await cookies();
 
   return createServerClient<Database>(

@@ -1,10 +1,23 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
+import { NoBusiness } from "@/components/no-business";
 import { getMemberships } from "@/lib/auth";
 
 export const metadata: Metadata = { title: "Dashboard" };
 
-export default async function DashboardPage() {
-  const memberships = await getMemberships(); // re-checks the session itself
+export default function DashboardPage() {
+  return (
+    <Suspense
+      fallback={<p className="text-sm text-muted-foreground">Loading…</p>}
+    >
+      <ThisWeek />
+    </Suspense>
+  );
+}
+
+async function ThisWeek() {
+  const memberships = await getMemberships(); // checks the session itself
+  if (memberships.length === 0) return <NoBusiness />;
 
   return (
     <div className="max-w-2xl space-y-2">
